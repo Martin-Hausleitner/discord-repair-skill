@@ -1,0 +1,4 @@
+# Recovery artifacts are local and may include machine-specific metadata.
+/backups/
+/discord-repair/
+*.log
