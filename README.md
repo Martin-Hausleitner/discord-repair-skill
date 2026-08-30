@@ -25,3 +25,7 @@ bash .codex/skills/discord-repair/scripts/backup-vencord.sh
 ```
 
 The skill is intentionally macOS-specific. It is designed for a setup that values predictable recovery and low background overhead more than accumulating plugins.
+
+## AquaMuteSync repair
+
+The companion `.codex/skills/discord-aqua-repair` skill documents the single-owner physical-button path (one `set_recording` transition), read-only latency measurement, confirmed-only shortcut collision cleanup, and AutoStream Desired-versus-Effective FPS reporting. It requires Codex Computer Use and the official Vencord installer; it does not bypass VCVM CAPTCHA or email checks. Keep benchmark inputs, logs, and screenshots sanitized before publishing.
