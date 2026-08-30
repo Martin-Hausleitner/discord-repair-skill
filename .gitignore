@@ -2,5 +2,7 @@
 /backups/
 /discord-repair/
 *.log
+__pycache__/
+*.pyc
 *.jsonl
 *-benchmark.json
