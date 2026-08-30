@@ -2,3 +2,5 @@
 /backups/
 /discord-repair/
 *.log
+*.jsonl
+*-benchmark.json
