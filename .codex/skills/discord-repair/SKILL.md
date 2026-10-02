@@ -1,106 +1,63 @@
 ---
 name: discord-repair
-description: Repair and harden Discord Stable plus Vencord on macOS using a verified local backup, the official Vencord installer, and safe performance defaults.
+description: Keep macOS Discord Stable with custom AutoStream and AquaMuteSync working, diagnose live failures, and repair update damage quietly without opening the graphical Vencord Installer.
 metadata:
-  version: 1.0.0
-  triggers:
-    - repair Discord Vencord
-    - Discord will not start
-    - restore Vencord backup
-    - fix Discord performance on macOS
+  version: 2.0.0
 ---
 
-# Discord Repair
+# Discord, AutoStream and Aqua recovery
 
-Restore a working Discord Stable + Vencord installation on macOS without silently changing channels, installing competing clients, or overwriting the user's settings.
+## Operator contract, 2026-09-07
 
-## Safety boundaries
+Never open, download for auto-launch, or invoke the graphical Vencord Installer. The old CyberKird macOS wrapper downloads a GUI binary and passes CLI flags which that binary ignores. Its `at.vencord.cyberkird` LaunchAgent is disabled. Do not reenable it, `org.aaron.autovencordpatch`, or competing patchers. Never run `pnpm inject` / `scripts/runInstaller.mjs` on this Mac: its Darwin path opens the same GUI.
 
-- Use only `/Applications/Discord.app`; never substitute Beta, PTB, Canary, Vesktop, BetterDiscord, or Equicord.
-- Use the official Vencord macOS installer only: `https://github.com/Vencord/Installer/releases/latest/download/VencordInstaller.MacOS.zip`.
-- Do not use `sudo`, foreign `curl | bash` installers, or destructive deletes.
-- Create a local backup before repair. Backups stay on the Mac and are never committed, uploaded, or attached to a report.
-- Do not quit Discord, interrupt a call, or restart a stream unless the user explicitly asks. If a repair requires a restart, explain that impact and wait for it.
-- For Discord UI interaction, use Codex Computer Use; inspect the latest state before every click and verify the resulting state.
+Maintain `/Applications/Discord.app` only. Preserve the custom distribution and existing plugin settings. Do not substitute Discord PTB/Canary, Vesktop, stock Vencord, or another mod. Do not quit/reload Discord, stop a stream, disconnect a call, synthesize recording events, or send messages to test. An active call/stream requires deferring disruptive work. A maintenance request alone is not permission to interrupt it.
 
-## 1. Inspect before acting
+GUI interaction must use Codex Computer Use exclusively. If actions do not take effect, inspect once, correct once, then report the concrete limitation after three stalled attempts. Do not substitute AppleScript, browser evaluation, or Orca.
 
-Run the verification script:
+## Known installation
 
-```sh
-bash .codex/skills/discord-repair/scripts/verify.sh
-```
+- Custom source and deployed bundle: `/Users/mh/code/hoerbert/Vencord/dist`.
+- `/Users/mh/Library/Application Support/Vencord/dist` must remain a symlink to that directory.
+- Settings: `/Users/mh/Library/Application Support/Vencord/settings/settings.json`.
+- Required plugins: `AutoStream.enabled=true`, `AquaMuteSync.enabled=true`.
+- Aqua watch: `org.n281.aqua-watch`, WebSocket `127.0.0.1:8688`.
+- Mouse bridge: `org.aqua.mouse-bridge`, HTTP `127.0.0.1:8690/status`.
+- Quiet guard: `/Users/mh/Library/Application Support/discord-repair/discord_guard.py`.
+- Guard LaunchAgent: `local.mh.vencord-auto-repair`.
+- Local status: `/Users/mh/Library/Application Support/discord-repair/status.json`.
+- Local backups: `/Users/mh/Library/Application Support/discord-repair/backups/`.
 
-Confirm all of the following:
+## Diagnose first
 
-- Apple Silicon or Intel architecture, plus Rosetta only when an x86 installer actually fails.
-- Discord Stable exists at `/Applications/Discord.app` and has bundle ID `com.hnc.Discord`.
-- Vencord's patched `app.asar` and original `_app.asar` are both present.
-- The Vencord settings file is readable and the configured helper/LaunchAgent paths exist when used.
-- No competing Discord client or patcher is active.
+Run the guard in its read-only mode (check its `--help` for exact interface), inspect its status and `launchctl print gui/$(id -u)/local.mh.vencord-auto-repair`. Confirm both custom plugin names occur in renderer.js and selected enabled flags remain true. Do not dump all settings, tokens, environment, private channel data, or message history.
 
-Treat a failed check as a concrete repair target; do not broadly reinstall unrelated software.
+Read `http://127.0.0.1:8690/status` with a three-second timeout. `watchLinked` proves the bridge connection, not Discord behavior. For the helper, use `/opt/homebrew/bin/node` and the built-in WebSocket to receive the initial state from `ws://127.0.0.1:8688`. Send at most `{"type":"get_state"}`. Never send `app_state`, `set_recording`, mute controls or simulated events: that would fabricate the state being measured.
 
-## 2. Snapshot the current working state
+Check `apps.discord.online`, `apps.discord.muted`, sequence and timestamps, `recording`, and `degraded`. Fresh changing Discord reports are stronger evidence than a listening port. If a shell probe reports offline while the listener exists, rerun the direct absolute-path probe and expose its real error before restarting anything. Do not assume module resolution is the cause without the actual exception.
 
-Before patching, run:
+Inspect live Discord with Codex Computer Use. A visible active stream and injected AutoStream button prove live presence; they do not prove a new automatic start. Full AutoStream start/stop and physical Aqua parity testing require an idle, authorized test window. State that gap explicitly rather than claiming E2E from unit tests or configuration.
 
-```sh
-bash .codex/skills/discord-repair/scripts/backup-vencord.sh
-```
+## Quiet update recovery
 
-The script snapshots the Vencord settings and the two Discord resource archives into `~/Library/Application Support/discord-repair/backups/`, creates SHA-256 hashes, and prints the exact backup directory. It does not copy Discord tokens, browser profiles, messages, or cached media.
+The guard checks periodically without windows or notifications. Healthy installations are no-ops. Repair is allowed only when Discord is fully closed, update files are stable, required custom files exist, and archive state is unambiguous. Never overwrite `_app.asar` from an old Discord release onto a new `app.asar`. Mixed archives require explicit diagnosis. No kill, relaunch, automatic dependency update, stock download, or speculative rebuild.
 
-## 3. Repair Vencord conservatively
+The pinned local CLI is `/Users/mh/Library/Application Support/discord-repair/bin/VencordInstallerCli-darwin`. It derives from official `Vencord/Installer` revision `089cab0720743c5afab41f9b6f166f3b723e8de0`, with one local correction: the CLI `InstallLatestBuilds` uses the GUI's `if IsDevInstall { return nil }` guard. Unmodified upstream CLI can falsely report success in developer mode. Source archive and patch are under `discord-repair/source/`.
 
-If Discord Stable exists but Vencord is absent or broken, use the local CyberKird wrapper only when it is already installed and points to the official installer:
+Required environment is `VENCORD_DEV_INSTALL=1` and `VENCORD_USER_DATA_DIR=/Users/mh/Library/Application Support/Vencord`. Required arguments are `--install --location=/Applications/Discord.app`. Never use `--repair`: that path downloads a stock distribution. Never omit developer mode. Never pass the dist directory itself as the base. Never combine location and branch.
 
-```sh
-"$HOME/Library/Application Support/vencord-autopatcher/vencord-autopatcher.sh" -b stable -u
-```
+Use the guard rather than manually launching this command. It must back up before changes, verify the new archive marker and original archive, and rate-limit failures. Exit status alone does not prove success. Never replace the CLI without repeating the fixture patch/repatch test and updating its verified digest.
 
-If that wrapper is missing, download the official Vencord installer from the official GitHub release, inspect the download source, and run it interactively. Do not replace it with BetterVencordPatch or another patcher.
+## Plugin failure recovery
 
-The only permitted download is the official Vencord release asset. Download it as an archive, then test the archive before opening it; never pipe a download into a shell:
+If a plugin is missing from the bundle, inspect the actual custom source and current dirty tree before building. Preserve all existing changes. Run the focused tests:
 
-```sh
-installer_zip="$HOME/Downloads/VencordInstaller.MacOS.zip"
-curl -fL --proto '=https' --retry 3 -o "$installer_zip" \
-  "https://github.com/Vencord/Installer/releases/latest/download/VencordInstaller.MacOS.zip"
-unzip -t "$installer_zip"
-open "$installer_zip"
-```
+`node --test src/userplugins/autoStream/index.test.mjs src/userplugins/aquaMuteSync/index.test.mjs`
 
-This is intentionally an interactive installer path. If Gatekeeper blocks it, use the macOS Privacy & Security approval flow; do not bypass it, disable Gatekeeper, or substitute an unofficial binary. On Apple Silicon, try Rosetta only when the official installer itself fails to start, then record the failure and retry the same official asset.
+from `/Users/mh/code/hoerbert/Vencord`. Build only after diagnosing a concrete source/deployment mismatch, back up dist before replacement, and verify plugin inclusion afterward. A source build alone does not update an already loaded Discord renderer. Do not force reload during a call.
 
-Validate the patch by checking both `app.asar` and `_app.asar`, then use Computer Use to confirm the Vencord section appears in Discord settings. A Gatekeeper prompt needs an explicit user action in macOS Privacy & Security; do not work around it.
+If an Aqua helper is absent, inspect its existing LaunchAgent and exact error first; restore the same service, preserving its configuration. Do not restart healthy audio services or toggle microphones. Runtime checks must remain observational during dictation.
 
-## 4. Apply the efficient profile
+## Evidence and memory
 
-Keep the profile small and observable:
-
-- Required `NoTrack`: keep `disableAnalytics` enabled. It disables analytics, metrics, and Sentry reporting.
-- Enable `NoTypingAnimation`.
-- Keep `CrashHandler` enabled.
-- Enable `ConsoleJanitor`, but preserve error-level logs; it can hide useful diagnostics.
-- In Discord Settings → Advanced, keep Hardware Acceleration enabled. Changing it can require a Discord restart, so do not restart a live call or stream without explicit permission.
-- Prefer fewer enabled plugins over speculative performance plugins. Confirm OpenAsar/Vencord state rather than installing another client mod.
-
-Use the live Vencord Plugins UI to toggle these values and re-inspect every resulting switch. Some settings take effect only after a renderer reload; document that as pending rather than forcing an interruption. Treat Hardware Acceleration as **unknown** until the live Advanced settings page visibly confirms it; its usual default is not proof.
-
-## 5. Restore after an update or failure
-
-1. In the selected backup directory, run `shasum -a 256 -c SHA256SUMS` to verify the archived snapshot before relying on it.
-2. Compare the current archives and Vencord settings to that verified snapshot.
-3. Run the official Stable patch path above.
-4. Restore only the Vencord settings file from the selected backup if the user asks to recover their preferences.
-5. Validate Discord's Vencord navigation, required plugin states, and the configured LaunchAgent.
-6. If Discord cannot start, stop and report the exact failure plus the backup path; do not try alternative clients or broad cache deletion.
-
-## 6. AquaMuteSync note
-
-When AquaMuteSync is installed, confirm `enabled: true`, its configured helper port (commonly `8688`), and a live helper on localhost. A 50-ms drift poll is a current configuration choice, not a universal requirement. Measure the helper-to-Discord state transition with a read-only WebSocket observer before claiming a latency improvement. The observer must only request state: it must never publish an `app_state` payload, because that would become a second Discord state producer. Never run a synthetic recording trial while the user is actively dictating or in a sensitive call.
-
-## Completion evidence
-
-Report the Discord channel, Vencord patch evidence, backup path and hash manifest, enabled profile switches, Hardware Acceleration state, and any restart still required. Keep remaining risks explicit.
+Keep a local report with: cause, exact changed files, backup path, CLI source/digest, guard test result, plugin test result, live helper evidence, observed Discord state, and pending runtime tests. Keep confidential backups local. If the user asks to remember the repair, add a small update note to `/Users/mh/.codex/memories/extensions/ad_hoc/notes/`; do not edit MEMORY.md directly. Store an additional Hans summary only when its destination is clear and authorized. Never treat an old report as fresh runtime proof.

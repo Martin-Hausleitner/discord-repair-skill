@@ -2,7 +2,7 @@
 name: discord-aqua-repair
 description: Repair Discord Stable voice capture with one physical button, AquaMuteSync observation, and Vencord-safe recovery on macOS.
 metadata:
-  version: 1.0.0
+  version: 1.1.0
   triggers:
     - repair AquaMuteSync
     - Discord recording button broken
@@ -19,7 +19,7 @@ Use this skill for a macOS Discord Stable setup that routes one physical control
 - Use Codex Computer Use only for Discord, AquaMuteSync, Vencord, or other GUI interaction. Do not use Orca, AppleScript, synthetic keyboard tools, or a second GUI driver.
 - The physical button must produce exactly one `set_recording` action. AquaMuteSync watches that state and Vencord remains the Discord-side integration. Never add a second producer, duplicate shortcut, macro, or fallback hotkey.
 - Remove a shortcut collision only after observing the collision in the current UI or configuration. Do not guess which binding is stale.
-- Use the official Vencord installer release only: `https://github.com/Vencord/Installer/releases/latest/download/VencordInstaller.MacOS.zip`. Never use an unofficial patcher, `sudo`, or `curl | bash`.
+- Never open the graphical Vencord Installer. Follow the sibling `discord-repair/SKILL.md` quiet recovery path, including the pinned custom-bundle-safe CLI and live-call deferral. The old GUI installer and CyberKird wrapper are prohibited by the operator as of 2026-09-07.
 - A VCVM demo account must already be provisioned and usable. Do not bypass CAPTCHA, email verification, login controls, or rate limits.
 - Keep account names, channel names, device identifiers, local paths, tokens, screenshots, and logs out of public reports. Replace them with placeholders such as `$HOME`, `<demo-account>`, and `<voice-channel>`.
 - Do not call `app_state`, `set_recording`, or any input/process-writing API from an observer or benchmark.
@@ -29,7 +29,7 @@ Use this skill for a macOS Discord Stable setup that routes one physical control
 1. Inspect the latest Discord and AquaMuteSync state with Computer Use. Record whether the button, helper, Vencord integration, and current shortcut are visible.
 2. Trace one press: physical button → one `set_recording` transition → AquaMuteSync watch event → Vencord/Discord state. If two transitions appear for one press, stop and report the duplicate producer.
 3. If a collision is confirmed, remove only the conflicting shortcut and re-test one press. Do not change unrelated bindings.
-4. If Vencord is missing or broken, create a local backup first and use the official installer interactively. Validate the Stable branch and both `app.asar` and `_app.asar` before continuing.
+4. If Vencord is missing or broken, follow the sibling Discord Repair skill: back up, defer while Discord runs, and use its verified quiet guard. Validate the Stable branch, custom plugins and both archive roles before continuing.
 5. Confirm the demo-account preconditions in VCVM. Use a non-sensitive test call; never run a synthetic recording trial while a real user is dictating or in a sensitive call.
 
 ## Read-only latency benchmark
