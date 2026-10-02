@@ -1,31 +1,9 @@
 # Discord Repair Skill
 
-A public Codex skill for maintaining a fast, repairable Discord Stable + Vencord setup on macOS.
+Local macOS recovery for Discord Stable, custom AutoStream and AquaMuteSync.
 
-It deliberately avoids the tempting but fragile route: no Discord channel switching, no competing client mods, no `sudo`, and no mystery patchers. The skill uses Discord Stable at `/Applications/Discord.app`, backs up only the Vencord runtime state required for recovery, and uses the official Vencord installer path.
+The operator requires quiet recovery. The graphical Vencord Installer and old CyberKird auto-launch path must never be opened. The updated skill documents the pinned CLI correction, custom distribution preservation, backups, update stability checks, failure cooldown and active-call deferral.
 
-## What it does
+Read `.codex/skills/discord-repair/SKILL.md` for the current installation and repair procedure. The Aqua companion delegates Vencord recovery to the same procedure. Both require Codex Computer Use for GUI verification.
 
-- Verifies Discord Stable, the Vencord archive pair, and persisted Vencord settings.
-- Creates a local, SHA-256-manifested snapshot before repair. The backup excludes account tokens, messages, browser profiles, and media caches.
-- Repairs Vencord through the official installer or the already-installed CyberKird wrapper for the Stable branch.
-- Applies a conservative performance profile: NoTrack, NoTypingAnimation, CrashHandler, ConsoleJanitor, and Hardware Acceleration when appropriate.
-- Preserves live calls and streams: a restart is never forced merely to make a setting look green.
-- Documents AquaMuteSync readiness and the rules for safe latency measurement.
-
-The repository is public. Local backups, their manifests, Discord logs, and screenshots may contain private path or account-adjacent metadata; keep all of them out of Git and issue comments.
-
-## Use
-
-Copy or symlink `.codex/skills/discord-repair` into your Codex skills directory, then invoke the skill when Discord or Vencord needs recovery. The included scripts can also be run directly:
-
-```sh
-bash .codex/skills/discord-repair/scripts/verify.sh
-bash .codex/skills/discord-repair/scripts/backup-vencord.sh
-```
-
-The skill is intentionally macOS-specific. It is designed for a setup that values predictable recovery and low background overhead more than accumulating plugins.
-
-## AquaMuteSync repair
-
-The companion `.codex/skills/discord-aqua-repair` skill documents the single-owner physical-button path (one `set_recording` transition), read-only latency measurement, confirmed-only shortcut collision cleanup, and AutoStream Desired-versus-Effective FPS reporting. It requires Codex Computer Use and the official Vencord installer; it does not bypass VCVM CAPTCHA or email checks. Keep benchmark inputs, logs, and screenshots sanitized before publishing.
+Local runtime backups and reports remain private. Do not push personal paths, settings, logs or runtime evidence from this local configuration into the public repository.
